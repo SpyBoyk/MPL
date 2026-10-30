@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -25,13 +25,17 @@ import {
 import { apiClient } from '../api/client';
 import { getPlayerById } from '../data/playersData';
 import type { PlayerProfileData } from '../data/playersData';
+import { useAuth } from '../context/AuthContext';
+import { PlayerPhotoUploader } from '../components/portal/PlayerPhotoUploader';
 
 export const PlayerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
+  const { isAuthenticated, profile } = useAuth();
 
   const playerId = id || '1';
+  const isOwnProfile = isAuthenticated && profile?.id === Number(playerId);
 
   // Fetch optional API data if running against live backend
   const { data: apiPlayer } = useQuery({
@@ -51,7 +55,13 @@ export const PlayerDetailPage: React.FC = () => {
 
   // Merge attributes seamlessly
   const fullName = apiPlayer?.full_name || apiPlayer?.name || playerOfficial.fullName;
-  const photoUrl = playerOfficial.photoUrl;
+  const photoUrl = apiPlayer?.photo || playerOfficial.photoUrl;
+
+  // A freshly uploaded photo should get its own chance to load, even if an
+  // earlier photo URL had failed.
+  useEffect(() => {
+    setImageError(false);
+  }, [photoUrl]);
   const dob = playerOfficial.dob;
   const age = playerOfficial.age;
   const cityOrVillage = playerOfficial.cityOrVillage;
@@ -281,6 +291,7 @@ export const PlayerDetailPage: React.FC = () => {
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
               {!imageError ? (
                 <img
+                  key={photoUrl}
                   src={photoUrl}
                   alt={fullName}
                   onError={() => setImageError(true)}
@@ -293,6 +304,7 @@ export const PlayerDetailPage: React.FC = () => {
                 </div>
               )}
             </div>
+            {isOwnProfile && <PlayerPhotoUploader playerId={playerId} />}
 
             {/* Jersey Number Tag Overlay */}
             <div className="absolute -bottom-1.5 -right-1.5 bg-[#174478] dark:bg-sky-600 text-amber-300 border-2 border-white dark:border-[#0b1329] font-black text-[11px] px-2 py-0.5 rounded-lg shadow-xs">
@@ -401,113 +413,113 @@ export const PlayerDetailPage: React.FC = () => {
         {/* 16 Official Fields Grid (NO left borders, modern clean cards) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {/* 1. Full name */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Full Name</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">{fullName}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Full Name</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">{fullName}</span>
           </div>
 
           {/* 2. Player photograph */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors flex items-center justify-between">
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 block">Player Photograph</span>
-              <span className="font-bold text-emerald-700 text-xs mt-1 block">Official Photo on File</span>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Player Photograph</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs mt-1 block">Official Photo on File</span>
             </div>
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 shadow-2xs">
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shadow-2xs">
               <img src={photoUrl} alt={fullName} className="w-full h-full object-cover object-top" />
             </div>
           </div>
 
           {/* 3. Date of birth */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Date of Birth & Age</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">
-              {dob} <span className="text-slate-500 font-normal">({age} Years)</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Date of Birth & Age</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">
+              {dob} <span className="text-slate-500 dark:text-slate-400 font-normal">({age} Years)</span>
             </span>
           </div>
 
           {/* 4. City or village */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Village Origin</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">{cityOrVillage}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Village Origin</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">{cityOrVillage}</span>
           </div>
 
           {/* 5. Primary role */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Primary Role</span>
-            <span className="font-bold text-[#174478] text-xs mt-1 block">{primaryRole}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Primary Role</span>
+            <span className="font-bold text-[#174478] dark:text-sky-400 text-xs mt-1 block">{primaryRole}</span>
           </div>
 
           {/* 6. Batting style */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Batting Stance</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">{battingStyle}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Batting Stance</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">{battingStyle}</span>
           </div>
 
           {/* 7. Bowling style */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Bowling Style</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">{bowlingStyle}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Bowling Style</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">{bowlingStyle}</span>
           </div>
 
           {/* 8. Wicketkeeper */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Wicketkeeper Duty</span>
-            <span className={`font-bold text-xs mt-1 inline-flex items-center gap-1.5 ${isWicketkeeper ? 'text-emerald-700' : 'text-slate-700'}`}>
-              {isWicketkeeper ? <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Wicketkeeper Duty</span>
+            <span className={`font-bold text-xs mt-1 inline-flex items-center gap-1.5 ${isWicketkeeper ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
+              {isWicketkeeper ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[3]" /> : <X className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />}
               {isWicketkeeper ? 'Yes (Specialist)' : 'No (Outfielder)'}
             </span>
           </div>
 
           {/* 9. Preferred playing position */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Preferred Position</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block truncate" title={preferredPosition}>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Preferred Position</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block truncate" title={preferredPosition}>
               {preferredPosition}
             </span>
           </div>
 
           {/* 10. Current team */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Current Franchise</span>
-            <span className="font-bold text-[#174478] text-xs mt-1 block truncate">
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Current Franchise</span>
+            <span className="font-bold text-[#174478] dark:text-sky-400 text-xs mt-1 block truncate">
               {currentTeam}
             </span>
           </div>
 
           {/* 11. Team captain or vice-captain status */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Leadership Status</span>
-            <span className={`font-bold text-xs mt-1 block ${leadershipStatus !== 'Squad Member' ? 'text-amber-700 font-extrabold' : 'text-slate-700'}`}>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Leadership Status</span>
+            <span className={`font-bold text-xs mt-1 block ${leadershipStatus !== 'Squad Member' ? 'text-amber-700 dark:text-amber-400 font-extrabold' : 'text-slate-700 dark:text-slate-300'}`}>
               {leadershipStatus}
             </span>
           </div>
 
           {/* 12. Season */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Active Season</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">MPL {season}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Active Season</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">MPL {season}</span>
           </div>
 
           {/* 13. Player availability */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">Roster Availability</span>
-            <span className="font-bold text-emerald-700 text-xs mt-1 block truncate" title={availability}>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Roster Availability</span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs mt-1 block truncate" title={availability}>
               {availability}
             </span>
           </div>
 
           {/* 14. Player of the Match awards */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors">
-            <span className="text-[10px] font-bold text-slate-400 block">POTM Honors</span>
-            <span className="font-bold text-amber-700 text-xs mt-1 block">
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">POTM Honors</span>
+            <span className="font-bold text-amber-700 dark:text-amber-400 text-xs mt-1 block">
               {potmAwards} Official Awards
             </span>
           </div>
 
           {/* 15. Previous MPL teams */}
-          <div className="p-3 rounded-lg bg-[#f8fafc] border border-slate-200/80 hover:bg-slate-100/60 transition-colors sm:col-span-2">
-            <span className="text-[10px] font-bold text-slate-400 block">Previous MPL Franchises</span>
-            <span className="font-bold text-slate-900 text-xs mt-1 block">{previousTeams}</span>
+          <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors sm:col-span-2">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 block">Previous MPL Franchises</span>
+            <span className="font-bold text-slate-900 dark:text-white text-xs mt-1 block">{previousTeams}</span>
           </div>
         </div>
       </div>

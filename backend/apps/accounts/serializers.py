@@ -100,6 +100,10 @@ class PlayerProfileSerializer(serializers.ModelSerializer):
         return None
 
 
+class PlayerPhotoUpdateSerializer(serializers.Serializer):
+    photo = serializers.ImageField()
+
+
 class PlayerProfileListSerializer(serializers.ModelSerializer):
     """Compact serializer for player listings."""
     team = serializers.SerializerMethodField()

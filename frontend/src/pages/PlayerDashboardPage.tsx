@@ -582,7 +582,7 @@ export const PlayerDashboardPage: React.FC = () => {
           <div className="p-2.5 rounded-md bg-[#f8fafc] dark:bg-[#070d18] border border-slate-200 dark:border-slate-800">
             <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block">8. Wicketkeeper</span>
             <span className={`font-bold text-xs mt-0.5 inline-flex items-center gap-1 ${selectedPlayer.isWicketkeeper ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
-              {selectedPlayer.isWicketkeeper ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+              {selectedPlayer.isWicketkeeper ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <X className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />}
               {selectedPlayer.isWicketkeeper ? 'Yes (Specialist)' : 'No'}
             </span>
           </div>

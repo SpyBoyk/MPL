@@ -38,9 +38,18 @@ const PLAYER_CUSTOM_PHOTOS: Record<string, string> = {
 
 /**
  * Returns a high-definition portrait photo URL for any player.
- * Uses custom photo if available, otherwise maps deterministically from athletic portraits.
+ * Prefers a real uploaded photo when given one, then a custom photo if
+ * available, otherwise maps deterministically from athletic portraits.
  */
-export function getPlayerPhoto(playerId?: number | string | null, playerName?: string): string {
+export function getPlayerPhoto(
+  playerId?: number | string | null,
+  playerName?: string,
+  realPhotoUrl?: string | null
+): string {
+  if (realPhotoUrl) {
+    return realPhotoUrl;
+  }
+
   const idStr = String(playerId || '1');
   if (PLAYER_CUSTOM_PHOTOS[idStr]) {
     return PLAYER_CUSTOM_PHOTOS[idStr];
