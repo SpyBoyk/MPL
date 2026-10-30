@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <radialGradient id="om-glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#083344"/>
+    </radialGradient>
+  </defs>
+  <!-- Round crest -->
+  <circle cx="120" cy="120" r="98" fill="url(#om-glow)" stroke="#67e8f9" stroke-width="5"/>
+  <circle cx="120" cy="120" r="86" fill="none" stroke="#06b6d4" stroke-width="1.5" opacity="0.6"/>
+  <!-- Cricket ball seams -->
+  <path d="M120 34 A86 86 0 0 1 120 206" stroke="#22d3ee" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.75"/>
+  <path d="M120 34 A86 86 0 0 0 120 206" stroke="#22d3ee" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.75"/>
+  <!-- Om symbol -->
+  <g fill="#ecfeff">
+    <path d="M96 88 c-14 0 -22 9 -22 20 0 13 11 21 24 21 -8 6 -13 15 -13 26 0 22 18 34 40 34 25 0 42 -15 42 -36 0 -14 -9 -25 -24 -30 l-6 14 c12 4 17 10 17 17 0 12 -10 19 -27 19 -14 0 -23 -7 -23 -17 0 -9 6 -14 14 -19 17 -10 26 -19 26 -32 0 -10 -7 -17 -19 -17 -14 0 -21 9 -21 20 0 7 3 12 8 17 l-9 11 c-8 -7 -13 -16 -13 -27 0 -12 9 -20 23 -20 z"
+          transform="translate(6,6) scale(0.95)"/>
+    <circle cx="101" cy="76" r="9"/>
+    <path d="M120 62 l34 10 -4 9 z"/>
+  </g>
+  <!-- Wickets -->
+  <g stroke="#94f6ff" stroke-width="4" stroke-linecap="round">
+    <path d="M78 148 v34"/><path d="M90 148 v34"/><path d="M102 148 v34"/>
+  </g>
+</svg>

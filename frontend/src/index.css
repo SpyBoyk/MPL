@@ -14,6 +14,13 @@
 
   --color-mpl-gold: #d4a843;
   --color-mpl-gold-light: #f3cb69;
+
+  /* Landing page "scorebook" tokens — prefixed mpl-* so they don't collide with portal styling */
+  --font-display: 'Barlow Condensed', 'Outfit', sans-serif;
+  --color-chalk: #eae6db;
+  --color-sodium: #f0b44b;
+  --color-sodium-deep: #c98a1f;
+  --color-pitch: #060b13;
 }
 
 body {
@@ -104,3 +111,164 @@ html.dark body {
   width: max-content;
   animation: marquee-right 30s linear infinite;
 }
+
+/* Cinematic floodlight ambience for the hero/stadium sections */
+@keyframes floodlight-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.04); }
+}
+
+@keyframes floodlight-sweep {
+  0% { transform: translateX(-10%) rotate(0deg); opacity: 0.35; }
+  50% { transform: translateX(10%) rotate(1.5deg); opacity: 0.55; }
+  100% { transform: translateX(-10%) rotate(0deg); opacity: 0.35; }
+}
+
+.animate-floodlight-pulse {
+  animation: floodlight-pulse 4.5s ease-in-out infinite;
+}
+
+.animate-floodlight-sweep {
+  animation: floodlight-sweep 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left,
+  .animate-marquee-right,
+  .animate-floodlight-pulse,
+  .animate-floodlight-sweep {
+    animation: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page "scorebook under floodlights" system
+   Ledger rules + chalk type on pitch black, sodium amber as the single accent.
+   --------------------------------------------------------------------------- */
+
+.mpl-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.mpl-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Ruled section label — the consistent device above every section heading */
+.mpl-rule-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #a56c07;
+}
+.mpl-rule-label::after {
+  content: '';
+  width: 3.5rem;
+  height: 1px;
+  background: rgba(165, 108, 7, 0.4);
+}
+.dark .mpl-rule-label {
+  color: rgba(240, 180, 75, 0.95);
+}
+.dark .mpl-rule-label::after {
+  background: rgba(240, 180, 75, 0.45);
+}
+
+/* Scoreboard strip: ruled stat columns */
+.mpl-score-strip {
+  border-top: 1px solid rgba(234, 230, 219, 0.14);
+  border-bottom: 1px solid rgba(234, 230, 219, 0.14);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible keyboard focus across the landing system */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #f0b44b;
+  outline-offset: 2px;
+}
+
+/* Upscale softening for low-res backdrop stills */
+.backdrop-blend {
+  filter: blur(1.5px) saturate(1.06);
+  transform: scale(1.03);
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+@media (hover: none) {
+  .animate-marquee-left:hover,
+  .animate-marquee-right:hover {
+    animation-play-state: running;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left:hover,
+  .animate-marquee-right:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* Landing-page tap targets stay comfortable on phones */
+@media (max-width: 640px) {
+  .mpl-display {
+    font-weight: 600;
+  }
+}
+
+/* Ledger row hover: answers the pointer with a rule accent, never a bounce */
+.mpl-ledger-row {
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+.mpl-ledger-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #f0b44b;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+.mpl-ledger-row:hover::before {
+  transform: scaleY(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mpl-ledger-row,
+  .mpl-ledger-row::before {
+    transition: none;
+  }
+  .mpl-ledger-row::before {
+    transform: scaleY(1);
+  }
+}
+
+.mpl-gallery-strip {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(240, 180, 75, 0.4) transparent;
+}
+

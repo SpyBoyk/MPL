@@ -33,3 +33,17 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Claude Code local session/config
+.claude/
+skills-lock.json
+
+# Raw asset drops at repo root (processed copies live under frontend/public/images/)
+/*.zip
+/Mpl-*/
+/bg1.jpg
+/bg2.jpg
+/bg3.jpg
+/cricket_1.jpg
+/cricket_3.jpg
+/ccricket_2.jpg

@@ -433,8 +433,8 @@ export const PortalLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* SUB-TABS STRIP - SHOWN ONLY ON DASHBOARD */}
-        {(location.pathname === '/portal' || location.pathname === '/portal/') && (
+        {/* SUB-TABS STRIP - SHOWN ACROSS PORTAL SECTIONS */}
+        {!location.pathname.includes('/new') && !location.pathname.includes('/edit') && (
           <PortalSubTabs activeTab={meta.tab} />
         )}
 

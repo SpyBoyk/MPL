@@ -1,7 +1,61 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trophy, Lock, User as UserIcon, Mail, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { apiClient } from '../api/client';
+
+const ink = 'text-slate-900 dark:text-chalk';
+const inkSoft = 'text-slate-600 dark:text-chalk/50';
+const ruleBorder = 'border-slate-300/80 dark:border-chalk/15';
+const panelBg = 'bg-[#f7f4ed] dark:bg-[#080f1a]';
+const asideBg = 'bg-[#efeadd] dark:bg-[#060b13]';
+
+const inputCls =
+  'w-full px-4 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk placeholder-slate-400/80 dark:placeholder-chalk/25 text-sm font-medium focus:outline-none focus:border-sodium-deep dark:focus:border-sodium focus:bg-slate-900/[0.03] dark:focus:bg-chalk/[0.03] transition-colors';
+const labelCls =
+  'block text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-chalk/50 mb-2';
+const selectCls =
+  'w-full px-3 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk text-sm focus:outline-none focus:border-sodium-deep dark:focus:border-sodium transition-colors appearance-none truncate';
+
+function IdentityAside() {
+  return (
+    <div className={`relative hidden lg:flex flex-col justify-end overflow-hidden border-r ${ruleBorder} ${asideBg}`}>
+      <img
+        src="/images/bg3.jpg"
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover object-center"
+      />
+      <div className="absolute inset-0 bg-white/40 dark:bg-pitch/55" />
+      <div className="absolute inset-0 dark:hidden bg-gradient-to-r from-white/55 via-transparent to-[#efeadd]/80" />
+      <div className="absolute inset-0 hidden dark:block bg-gradient-to-r from-pitch/70 via-transparent to-[#080f1a]" />
+
+      <div className="relative p-12 lg:p-16 pb-10">
+        <h2 className={`mpl-display text-5xl xl:text-6xl font-semibold ${ink} leading-[0.96] max-w-md drop-shadow-md`}>
+          Take your place in the record book.
+        </h2>
+        <p className={`mt-4 ${inkSoft} text-sm max-w-sm leading-relaxed drop-shadow-md`}>
+          Registration puts your name into the official squad list — every innings you play from
+          then on is kept on record.
+        </p>
+      </div>
+
+      <ol className={`relative mt-10 border-t ${ruleBorder} backdrop-blur-sm bg-white/50 dark:bg-pitch/65 px-12 lg:px-16 py-8 space-y-3.5 text-sm`}>
+        {[
+          'Create your profile with playing role and shirt number.',
+          'A committee captain adds you to one of the six squads.',
+          'Scorecards, stats and history follow your name automatically.',
+        ].map((step, i) => (
+          <li key={step} className={`flex gap-3.5 ${inkSoft}`}>
+            <span className="mpl-num text-sodium-deep dark:text-sodium shrink-0">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            {step}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -62,183 +116,199 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 relative">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
+    <div className="min-h-[85vh] grid grid-cols-1 lg:grid-cols-2 bg-[#f7f4ed] dark:bg-pitch">
+      <IdentityAside />
 
-      <div className="w-full max-w-xl relative z-10">
-        <div className="glass-panel-gold rounded-3xl p-8 sm:p-10 shadow-2xl">
-          <div className="text-center mb-8 space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto text-slate-950 shadow-lg shadow-amber-500/20 mb-4">
-              <Trophy className="w-7 h-7 stroke-[2.5]" />
-            </div>
-            <h1 className="font-heading font-black text-2xl text-white">Register as an MPL Player</h1>
-            <p className="text-sm text-slate-400">
-              Create your official Malghar Premier League player profile and join the tournament roster.
-            </p>
-          </div>
+      {/* Form side */}
+      <div className={`relative ${panelBg}`}>
+        <div className="max-w-md mx-auto lg:max-w-2xl lg:mx-0 lg:ml-auto lg:pr-8 px-6 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20">
+          <span className="mpl-rule-label">Player registration</span>
+          <h1 className={`mpl-display mt-4 text-4xl sm:text-5xl font-semibold ${ink} leading-[0.98]`}>
+            Register to portal
+          </h1>
+          <p className={`mt-3 text-sm ${inkSoft} leading-relaxed`}>
+            Your details go into the official tournament roster for the coming season.
+          </p>
 
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-300">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+            <div className="mt-8 flex items-start gap-3 px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-start gap-3 text-xs text-emerald-300">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
-              <span>Registration successful! Redirecting to sign in...</span>
+            <div className="mt-8 flex items-start gap-3 px-4 py-3 border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-300 text-xs">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>Registration successful. Redirecting to sign in…</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Full Name *
+                <label htmlFor="reg-name" className={labelCls}>
+                  Full name
                 </label>
                 <input
+                  id="reg-name"
                   type="text"
                   name="full_name"
                   required
                   placeholder="e.g. Rahul Patil"
                   value={formData.full_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                  className={inputCls}
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Username *
+                <label htmlFor="reg-username" className={labelCls}>
+                  Username
                 </label>
                 <input
+                  id="reg-username"
                   type="text"
                   name="username"
                   required
                   placeholder="e.g. rahulp"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                  className={inputCls}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                Email Address *
+              <label htmlFor="reg-email" className={labelCls}>
+                Email address
               </label>
               <input
+                id="reg-email"
                 type="email"
                 name="email"
                 required
+                autoComplete="email"
                 placeholder="rahul@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                className={inputCls}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Password *
+                <label htmlFor="reg-password" className={labelCls}>
+                  Password
                 </label>
                 <input
+                  id="reg-password"
                   type="password"
                   name="password"
                   required
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                  className={inputCls}
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Confirm Password *
+                <label htmlFor="reg-password-confirm" className={labelCls}>
+                  Confirm password
                 </label>
                 <input
+                  id="reg-password-confirm"
                   type="password"
                   name="password_confirm"
                   required
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={formData.password_confirm}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
+                  className={inputCls}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Playing Role
-                </label>
-                <select
-                  name="playing_role"
-                  value={formData.playing_role}
-                  onChange={handleChange}
-                  className="w-full px-3 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-xs focus:outline-none focus:border-amber-400"
-                >
-                  <option value="batter">Batter</option>
-                  <option value="bowler">Bowler</option>
-                  <option value="all_rounder">All-rounder</option>
-                  <option value="wk_batter">Wicket-keeper</option>
-                </select>
-              </div>
+            {/* Cricketing details, as a ruled sub-ledger */}
+            <fieldset className={`border ${ruleBorder} px-4 sm:px-5 pt-4 pb-5`}>
+              <legend className={`text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-chalk/40 px-1.5`}>
+                Cricketing details
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label htmlFor="reg-role" className={labelCls}>
+                    Playing role
+                  </label>
+                  <select
+                    id="reg-role"
+                    name="playing_role"
+                    value={formData.playing_role}
+                    onChange={handleChange}
+                    className={selectCls}
+                  >
+                    <option value="batter">Batter</option>
+                    <option value="bowler">Bowler</option>
+                    <option value="all_rounder">All-rounder</option>
+                    <option value="wk_batter">Wicket-keeper batter</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Batting Style
-                </label>
-                <select
-                  name="batting_style"
-                  value={formData.batting_style}
-                  onChange={handleChange}
-                  className="w-full px-3 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-200 text-xs focus:outline-none focus:border-amber-400"
-                >
-                  <option value="right_hand">Right-hand Bat</option>
-                  <option value="left_hand">Left-hand Bat</option>
-                </select>
-              </div>
+                <div>
+                  <label htmlFor="reg-batting" className={labelCls}>
+                    Batting style
+                  </label>
+                  <select
+                    id="reg-batting"
+                    name="batting_style"
+                    value={formData.batting_style}
+                    onChange={handleChange}
+                    className={selectCls}
+                  >
+                    <option value="right_hand">Right-hand</option>
+                    <option value="left_hand">Left-hand</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Jersey Number
-                </label>
-                <input
-                  type="number"
-                  name="jersey_number"
-                  placeholder="e.g. 18"
-                  value={formData.jersey_number}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 text-sm"
-                />
+                <div>
+                  <label htmlFor="reg-jersey" className={labelCls}>
+                    Shirt number
+                  </label>
+                  <input
+                    id="reg-jersey"
+                    type="number"
+                    name="jersey_number"
+                    min={1}
+                    max={99}
+                    placeholder="e.g. 18"
+                    value={formData.jersey_number}
+                    onChange={handleChange}
+                    className={inputCls}
+                  />
+                </div>
               </div>
-            </div>
+              <p className={`mt-3 text-[11px] text-slate-400 dark:text-chalk/35`}>
+                You can update these from your profile dashboard once on record.
+              </p>
+            </fieldset>
 
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full gold-gradient-btn py-3.5 rounded-xl font-bold text-sm shadow-xl flex items-center justify-center gap-2 mt-6 cursor-pointer disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 bg-sodium hover:bg-sodium-deep text-pitch font-bold text-sm px-8 py-4 transition-colors cursor-pointer disabled:opacity-60"
             >
-              {loading ? (
-                <span>Registering Profile...</span>
-              ) : (
-                <>
-                  <span>Create Player Account</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
+              {loading ? 'Registering…' : 'Create player account'}
+              {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-            <p className="text-xs text-slate-400">
-              Already registered?{' '}
-              <Link to="/login" className="font-semibold text-amber-400 hover:underline">
+          <div className={`mt-6 pt-5 border-t ${ruleBorder}`}>
+            <p className={`text-sm ${inkSoft}`}>
+              Already on record?{' '}
+              <Link
+                to="/login"
+                className="text-sodium-deep dark:text-sodium font-semibold border-b border-sodium-deep/40 dark:border-sodium/40 hover:border-current transition-colors"
+              >
                 Sign in to your dashboard
               </Link>
             </p>
