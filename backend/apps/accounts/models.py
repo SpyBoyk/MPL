@@ -26,6 +26,13 @@ PLAYING_ROLES = [
     ('wk_batter', 'Wicket-keeper Batter'),
 ]
 
+PAYMENT_STATUSES = [
+    ('unpaid', 'Not Paid'),
+    ('pending', 'Pending Verification'),
+    ('verified', 'Verified'),
+    ('rejected', 'Rejected'),
+]
+
 
 class User(AbstractUser):
     """Extended Django user with unique email."""
@@ -42,6 +49,7 @@ class PlayerProfile(models.Model):
     """Player profile linked to a user account."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='player_profile')
     full_name = models.CharField(max_length=150)
+    phone_number = models.CharField(max_length=15, blank=True)
     photo = models.ImageField(upload_to='players/', blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     batting_style = models.CharField(max_length=30, choices=BATTING_STYLES, blank=True)
@@ -49,6 +57,9 @@ class PlayerProfile(models.Model):
     playing_role = models.CharField(max_length=30, choices=PLAYING_ROLES, blank=True)
     jersey_number = models.PositiveSmallIntegerField(blank=True, null=True)
     bio = models.TextField(blank=True)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUSES, default='unpaid')
+    payment_screenshot = models.ImageField(upload_to='payments/', blank=True, null=True)
+    payment_note = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

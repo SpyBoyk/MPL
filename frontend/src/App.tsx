@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { LoadingProvider } from './context/LoadingContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import { RootLayout } from './components/layout/RootLayout';
 import { PortalLayout } from './components/portal/PortalLayout';
 
@@ -26,6 +27,7 @@ import { MatchFormPage } from './pages/MatchFormPage';
 import { TeamFormPage } from './pages/TeamFormPage';
 import { PlayerFormPage } from './pages/PlayerFormPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 import { PortalOverviewPage } from './components/portal/PortalOverviewPage';
 
 const queryClient = new QueryClient({
@@ -49,6 +51,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <ToastProvider>
           <LoadingProvider>
             <BrowserRouter>
             <Routes>
@@ -79,6 +82,7 @@ export function App() {
                 <Route path="awards/new" element={<AwardFormPage />} />
                 <Route path="awards/:id/edit" element={<AwardFormPage />} />
                 <Route path="dashboard" element={<PlayerDashboardPage />} />
+                <Route path="admin/users" element={<AdminUsersPage />} />
                 <Route path="scoring/*" element={<Navigate to="/portal/matches" replace />} />
               </Route>
 
@@ -98,6 +102,7 @@ export function App() {
             </Routes>
           </BrowserRouter>
         </LoadingProvider>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

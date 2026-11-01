@@ -2,7 +2,7 @@ import React from 'react';
 import { findTeamBrand } from './teamBrand';
 
 interface TeamBadgeProps {
-  name: string;
+  name?: string | null;
   code?: string;
   /** Real logo URL from the backend (e.g. match/team API `logo` field), when present. */
   logoUrl?: string | null;
@@ -24,10 +24,11 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({
   size = 48,
   className = '',
 }) => {
-  const brand = findTeamBrand(code || name);
+  const safeName = name || '';
+  const brand = findTeamBrand(code || safeName);
   const resolvedLogo = logoUrl || brand?.logo;
   const resolvedColor = color || brand?.color || '#174478';
-  const resolvedCode = code || brand?.code || name.slice(0, 2).toUpperCase();
+  const resolvedCode = code || brand?.code || (safeName.slice(0, 2).toUpperCase() || '??');
 
   if (resolvedLogo) {
     return (
@@ -35,7 +36,7 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({
         style={{ width: size, height: size }}
         className={`shrink-0 rounded-xl bg-white/95 border border-white/10 flex items-center justify-center p-1 shadow-md overflow-hidden ${className}`}
       >
-        <img src={resolvedLogo} alt={`${name} logo`} className="w-full h-full object-contain" />
+        <img src={resolvedLogo} alt={`${safeName} logo`} className="w-full h-full object-contain" />
       </div>
     );
   }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 /* Scorebook tokens with paired light mode (warm paper + pitch ink) */
 const ink = 'text-slate-900 dark:text-chalk';
@@ -44,14 +45,13 @@ export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
@@ -62,13 +62,14 @@ export const LoginPage: React.FC = () => {
 
       const { token, user, player_profile } = response.data;
       login(token, user, player_profile);
+      showToast(`Welcome back, ${player_profile?.full_name || user?.username}.`, 'success');
       navigate('/dashboard');
     } catch (err: any) {
       const detail =
         err.response?.data?.non_field_errors?.[0] ||
         err.response?.data?.detail ||
         'Invalid username or password. Please try again.';
-      setError(detail);
+      showToast(detail, 'error');
     } finally {
       setLoading(false);
     }
@@ -129,13 +130,6 @@ export const LoginPage: React.FC = () => {
           heading="Portal sign in"
           subheading="Your profile, statistics and schedule, all on record."
         >
-          {error && (
-            <div className="flex items-start gap-3 px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="login-username" className={labelCls}>
@@ -204,12 +198,6 @@ export const LoginPage: React.FC = () => {
               >
                 Register as a player
               </Link>
-            </p>
-            <p className={`mt-3 text-[11px] text-slate-400 dark:text-chalk/35`}>
-              Committee accounts: <code className="text-slate-600 dark:text-chalk/60">rohitp</code> /{' '}
-              <code className="text-slate-600 dark:text-chalk/60">player123</code> or{' '}
-              <code className="text-slate-600 dark:text-chalk/60">admin</code> /{' '}
-              <code className="text-slate-600 dark:text-chalk/60">admin123</code>
             </p>
           </div>
         </AuthPanel>

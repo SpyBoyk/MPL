@@ -1,77 +1,79 @@
 import React from 'react';
+import { CalendarDays } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
+import { TiltCard } from './TiltCard';
+import { useClipReveal, useDrawPath } from './scrollFx';
 
-const RECORD = [
-  {
-    mark: '2023',
-    entry:
-      'MPL begins. Six teams of local players, the first floodlit championship staged at Lohar Wadi Stadium.',
-  },
-  {
-    mark: '4th',
-    entry: 'Edition on the board. Every scorecard since opening night is archived in the portal.',
-  },
-  {
-    mark: '58',
-    entry: 'Players in the record book, from the inaugural squads to the current season.',
-  },
+const TIMELINE = [
+  { year: '2023', entry: 'Opening night. Six teams, one ground, the first floodlit championship.' },
+  { year: '2024', entry: 'Second season. The scorecards start piling up in the archive.' },
+  { year: '2025', entry: 'Third edition. Fifty-eight players across the six squads.' },
+  { year: '2026', entry: 'Fourth season, live now — four years of village cricket on record.' },
 ];
 
 export const AboutMPLSection: React.FC = () => {
+  const lineRef = useDrawPath<SVGLineElement>();
+  const bannerRef = useClipReveal<HTMLImageElement>('up');
+
   return (
-    <section className="relative py-16 sm:py-24 overflow-hidden bg-pitch">
-      <img
-        src="/images/bg3.jpg"
-        alt=""
-        aria-hidden
-        className="backdrop-blend absolute inset-0 w-full h-full object-cover object-center"
-      />
-      <div className="absolute inset-0 bg-pitch/55 backdrop-blur-[2px]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-pitch via-transparent to-pitch" />
-      <div className="absolute inset-0 bg-gradient-to-r from-pitch/80 via-pitch/30 to-transparent lg:bg-gradient-to-r lg:from-pitch/85 lg:via-pitch/40 lg:to-transparent" />
+    <section className="lp-dot-grid relative py-14 sm:py-20 bg-navy overflow-hidden">
+      <div className="lp-glow w-[28rem] h-[28rem] bg-mpl-gold/10 top-0 left-1/3" aria-hidden />
+      <span className="lp-section-mark absolute -top-4 right-4 sm:right-8 text-[8rem] sm:text-[11rem]" aria-hidden>
+        05
+      </span>
+
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-        <div className="max-w-2xl mb-12 sm:mb-16">
-          <ScrollReveal direction="down" distance={34}>
-            <span className="mpl-rule-label">The record</span>
-            <h2 className="mpl-display mt-4 text-4xl sm:text-5xl md:text-6xl font-semibold text-chalk leading-[0.97]">
+        <div className="max-w-2xl mb-10 sm:mb-12">
+          <ScrollReveal direction="down" distance={30}>
+            <span className="lp-eyebrow text-mpl-gold">
+              <CalendarDays className="w-3.5 h-3.5" />
+              The record
+            </span>
+            <h2 className="lp-heading mt-4 text-4xl sm:text-5xl md:text-6xl font-extrabold text-cloud leading-[0.98]">
               One village, one ground, four seasons of cricket.
             </h2>
           </ScrollReveal>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          <ScrollReveal direction="left" distance={44}>
-            <figure>
-              <div className="relative overflow-hidden aspect-[4/3]">
-                <img
-                  src="/images/mpl-about-community.jpg"
-                  alt="Malghar Premier League award ceremony with players, village elders and the community"
-                  className="w-full h-full object-cover object-center"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-pitch/60 via-transparent to-transparent" />
+        {/* Horizontal timeline — a connecting rail with four season stops */}
+        <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 lg:gap-x-8">
+          <div aria-hidden className="hidden lg:block absolute top-[0.65rem] left-[12.5%] right-[12.5%] h-px overflow-visible">
+            <svg className="block w-full h-full overflow-visible" viewBox="0 0 100 1" preserveAspectRatio="none">
+              <line ref={lineRef} x1="0" y1="0.5" x2="100" y2="0.5" stroke="var(--color-navy-line)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+            </svg>
+          </div>
+          {TIMELINE.map((stop, idx) => (
+            <ScrollReveal key={stop.year} direction="up" distance={24} delay={idx * 100}>
+              <div className="relative flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="relative z-10 w-3 h-3 rounded-full bg-mpl-gold shadow-[0_0_0_4px_var(--color-navy)]" />
+                  <span className="lp-num text-sm text-mpl-gold tracking-[0.1em]">{stop.year}</span>
+                </div>
+                <p className="text-cloud/65 text-sm leading-relaxed">{stop.entry}</p>
               </div>
-              <figcaption className="mt-3 text-xs text-chalk/40 tracking-wide">
-                Season award night, Lohar Wadi Stadium
-              </figcaption>
-            </figure>
-          </ScrollReveal>
-
-          <ol>
-            {RECORD.map((row, idx) => (
-              <ScrollReveal key={row.mark} direction="right" distance={34} delay={idx * 110}>
-                <li className="flex gap-6 sm:gap-10 border-t border-chalk/12 py-7 sm:py-8">
-                  <span className="mpl-num shrink-0 text-3xl sm:text-4xl text-sodium leading-none w-16 sm:w-20">
-                    {row.mark}
-                  </span>
-                  <p className="text-chalk/70 text-sm sm:text-base leading-relaxed pt-0.5">{row.entry}</p>
-                </li>
-              </ScrollReveal>
-            ))}
-            <li aria-hidden className="border-t border-chalk/12" />
-          </ol>
+            </ScrollReveal>
+          ))}
         </div>
+
+        {/* Cinematic banner photo beneath the timeline */}
+        <ScrollReveal direction="up" distance={30} delay={120} className="lp-perspective mt-10 sm:mt-12">
+          <TiltCard maxTilt={3} className="lp-lift relative overflow-hidden rounded-2xl aspect-[21/9] shadow-2xl shadow-black/40">
+            <img
+              ref={bannerRef}
+              src="/images/mpl-about-community.jpg"
+              alt="Malghar Premier League award ceremony with players, village elders and the community"
+              className="w-full h-full object-cover object-top"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/10 to-transparent" />
+            <div className="absolute bottom-5 left-5 sm:bottom-7 sm:left-7">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-cloud/70">
+                Season award night, Lohar Wadi Stadium
+              </span>
+            </div>
+          </TiltCard>
+        </ScrollReveal>
       </div>
     </section>
   );

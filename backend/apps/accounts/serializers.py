@@ -7,8 +7,11 @@ class RegisterSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=150)
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
+    phone_number = serializers.CharField(max_length=15)
     password = serializers.CharField(min_length=8, write_only=True)
     password_confirm = serializers.CharField(min_length=8, write_only=True)
+    photo = serializers.ImageField(required=True)
+    payment_screenshot = serializers.ImageField(required=True)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -18,6 +21,12 @@ class RegisterSerializer(serializers.Serializer):
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('Email is already registered.')
+        return value
+
+    def validate_phone_number(self, value):
+        digits = value.replace(' ', '').replace('-', '').lstrip('+')
+        if not digits.isdigit() or not (10 <= len(digits) <= 13):
+            raise serializers.ValidationError('Enter a valid phone number (10-13 digits).')
         return value
 
     def validate(self, data):
@@ -33,9 +42,16 @@ class RegisterSerializer(serializers.Serializer):
             first_name=validated_data['full_name'].split(' ')[0],
             last_name=' '.join(validated_data['full_name'].split(' ')[1:]),
         )
+        # Every registration now requires proof of payment, so every new
+        # profile starts 'pending' review — 'verified'/'rejected' are
+        # admin-only transitions made from the payment-status endpoint below.
         PlayerProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
+            phone_number=validated_data['phone_number'],
+            photo=validated_data['photo'],
+            payment_status='pending',
+            payment_screenshot=validated_data['payment_screenshot'],
         )
         return user
 
@@ -67,19 +83,32 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Public-safe user fields — nested in the public PlayerProfileSerializer,
+    so it must never include is_staff/is_active or anything else private."""
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
 
+class AuthUserSerializer(UserSerializer):
+    """Adds account-status fields that are only ever safe to return about
+    the user themselves: the Login/Register response, and the self/admin
+    player serializer below. Never nest this in a publicly-readable view."""
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ('is_staff', 'is_active')
+
+
 class PlayerProfileSerializer(serializers.ModelSerializer):
+    """Public-safe profile — used by the open player list/detail endpoints.
+    Deliberately excludes payment_status/payment_screenshot/payment_note
+    and the account-status fields on `user`."""
     user = UserSerializer(read_only=True)
     team = serializers.SerializerMethodField()
 
     class Meta:
         model = PlayerProfile
         fields = (
-            'id', 'user', 'full_name', 'photo', 'date_of_birth',
+            'id', 'user', 'full_name', 'phone_number', 'photo', 'date_of_birth',
             'batting_style', 'bowling_style', 'playing_role',
             'jersey_number', 'bio', 'team', 'created_at', 'updated_at'
         )
@@ -100,8 +129,27 @@ class PlayerProfileSerializer(serializers.ModelSerializer):
         return None
 
 
+class PlayerProfileSelfSerializer(PlayerProfileSerializer):
+    """Everything in the public serializer, plus fields that are only ever
+    safe for the player to see about themselves or for an admin to see
+    about anyone: payment status/proof and account status."""
+    user = AuthUserSerializer(read_only=True)
+
+    class Meta(PlayerProfileSerializer.Meta):
+        fields = PlayerProfileSerializer.Meta.fields + (
+            'payment_status', 'payment_screenshot', 'payment_note',
+        )
+
+
 class PlayerPhotoUpdateSerializer(serializers.Serializer):
     photo = serializers.ImageField()
+
+
+class AdminPaymentStatusSerializer(serializers.Serializer):
+    """Admin-only transition: a player can only reach 'pending' at
+    registration; only an admin can mark a payment verified or rejected."""
+    status = serializers.ChoiceField(choices=['verified', 'rejected'])
+    note = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
 
 class PlayerProfileListSerializer(serializers.ModelSerializer):

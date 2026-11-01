@@ -1,3 +1,6 @@
+import secrets
+import string
+
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,7 +9,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import (
     RegisterSerializer, LoginSerializer,
-    UserSerializer, PlayerProfileSerializer, PlayerPhotoUpdateSerializer,
+    AuthUserSerializer, PlayerProfileSerializer, PlayerProfileSelfSerializer,
+    PlayerPhotoUpdateSerializer, AdminPaymentStatusSerializer,
 )
 from .models import PlayerProfile
 
@@ -16,6 +20,7 @@ MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5MB
 class RegisterView(APIView):
     """Register a new user with player profile."""
     permission_classes = [permissions.AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -24,7 +29,7 @@ class RegisterView(APIView):
         return Response(
             {
                 'message': 'Registration successful. Please log in.',
-                'user': UserSerializer(user).data,
+                'user': AuthUserSerializer(user).data,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -44,13 +49,13 @@ class LoginView(APIView):
         profile_data = None
         try:
             profile = user.player_profile
-            profile_data = PlayerProfileSerializer(profile).data
+            profile_data = PlayerProfileSelfSerializer(profile).data
         except PlayerProfile.DoesNotExist:
             pass
 
         return Response({
             'token': token.key,
-            'user': UserSerializer(user).data,
+            'user': AuthUserSerializer(user).data,
             'player_profile': profile_data,
         })
 
@@ -107,7 +112,7 @@ class PlayerDashboardView(APIView):
         profile_completion = int((filled / len(fields)) * 100)
 
         return Response({
-            'player': PlayerProfileSerializer(profile).data,
+            'player': PlayerProfileSelfSerializer(profile).data,
             'profile_completion': profile_completion,
             'career_stats': career_stats,
             'recent_performances': recent_performances,
@@ -136,7 +141,7 @@ class PlayerProfileView(APIView):
                 {'detail': 'Player profile not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(PlayerProfileSerializer(profile).data)
+        return Response(PlayerProfileSelfSerializer(profile).data)
 
     def patch(self, request):
         """Update the caller's own profile photo. The target is always
@@ -165,7 +170,73 @@ class PlayerProfileView(APIView):
         profile.photo = photo
         profile.save(update_fields=['photo', 'updated_at'])
 
-        return Response(PlayerProfileSerializer(profile).data)
+        return Response(PlayerProfileSelfSerializer(profile).data)
+
+
+class ResetPlayerPasswordView(APIView):
+    """Reset a player's login password to a new random temporary password
+    (admin only). The temporary password is returned once in the response
+    for the admin to relay to the player — it is never emailed or logged."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            profile = PlayerProfile.objects.select_related('user').get(pk=pk)
+        except PlayerProfile.DoesNotExist:
+            return Response(
+                {'detail': 'Player not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        alphabet = string.ascii_letters + string.digits
+        temporary_password = ''.join(secrets.choice(alphabet) for _ in range(10))
+
+        user = profile.user
+        user.set_password(temporary_password)
+        user.save(update_fields=['password'])
+
+        # Resetting the password signs the player out of any existing session.
+        Token.objects.filter(user=user).delete()
+
+        return Response({
+            'detail': f"Password reset for {profile.full_name or user.username}.",
+            'username': user.username,
+            'temporary_password': temporary_password,
+        })
+
+
+class AdminUserListView(generics.ListAPIView):
+    """List every registered player with account status (active/admin) and
+    payment-verification status — the admin user-management screen (admin
+    only). Uses the same 'self' serializer as a player's own dashboard, since
+    an admin is allowed to see exactly what a player can see about
+    themselves, for every player at once."""
+    serializer_class = PlayerProfileSelfSerializer
+    permission_classes = [permissions.IsAdminUser]
+    queryset = PlayerProfile.objects.select_related('user').order_by('-created_at')
+
+
+class AdminPaymentStatusView(APIView):
+    """Approve or reject a player's uploaded payment screenshot (admin only)."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            profile = PlayerProfile.objects.select_related('user').get(pk=pk)
+        except PlayerProfile.DoesNotExist:
+            return Response(
+                {'detail': 'Player not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = AdminPaymentStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        profile.payment_status = serializer.validated_data['status']
+        profile.payment_note = serializer.validated_data.get('note', '')
+        profile.save(update_fields=['payment_status', 'payment_note', 'updated_at'])
+
+        return Response(PlayerProfileSelfSerializer(profile).data)
 
 
 class PlayerListView(generics.ListAPIView):

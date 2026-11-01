@@ -27,12 +27,13 @@ import { getPlayerById } from '../data/playersData';
 import type { PlayerProfileData } from '../data/playersData';
 import { useAuth } from '../context/AuthContext';
 import { PlayerPhotoUploader } from '../components/portal/PlayerPhotoUploader';
+import { AdminResetPasswordButton } from '../components/portal/AdminResetPasswordButton';
 
 export const PlayerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
-  const { isAuthenticated, profile } = useAuth();
+  const { isAuthenticated, isAdmin, profile } = useAuth();
 
   const playerId = id || '1';
   const isOwnProfile = isAuthenticated && profile?.id === Number(playerId);
@@ -374,6 +375,13 @@ export const PlayerDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Admin-only control: reset this player's login password */}
+      {isAdmin && (
+        <div className="bg-white dark:bg-[#0b1329] rounded-xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+          <AdminResetPasswordButton playerId={playerId} playerName={fullName} />
+        </div>
+      )}
 
       {/* 3. OFFICIAL CREDENTIALS & REGISTRATION DOSSIER PANEL */}
       <div className="bg-white dark:bg-[#0b1329] rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">

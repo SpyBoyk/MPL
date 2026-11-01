@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { PortalPageWrapper } from '../components/portal/PortalPageWrapper';
 import { apiClient } from '../api/client';
-import type { AwardItem } from './AwardsPage';
+import type { AwardItem } from '../data/awardsData';
 
 const STORAGE_KEY = 'mpl_awards_data_v1';
 

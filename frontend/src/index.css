@@ -14,6 +14,7 @@
 
   --color-mpl-gold: #d4a843;
   --color-mpl-gold-light: #f3cb69;
+  --color-mpl-gold-deep: #a9811f;
 
   /* Landing page "scorebook" tokens — prefixed mpl-* so they don't collide with portal styling */
   --font-display: 'Barlow Condensed', 'Outfit', sans-serif;
@@ -21,6 +22,19 @@
   --color-sodium: #f0b44b;
   --color-sodium-deep: #c98a1f;
   --color-pitch: #060b13;
+
+  /* Landing page v2 — "Matchday" system. New tokens only: the scorebook
+     tokens above still power the Footer, Login and Register pages and must
+     not change. Built on the site's own unused brand palette (brand-500/700
+     navy blue + mpl-gold) instead of inventing a new one — this is the same
+     navy the Navbar already uses (#070d18) and the same gold the Navbar's
+     amber accents already imply, so the landing page now actually matches
+     the shell it sits inside instead of clashing with it. */
+  --font-feature: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --color-navy: #070d18;
+  --color-navy-raised: #0f1a2e;
+  --color-navy-line: #1e2d47;
+  --color-cloud: #f3f5f9;
 }
 
 body {
@@ -270,5 +284,162 @@ select:focus-visible {
 .mpl-gallery-strip {
   scrollbar-width: thin;
   scrollbar-color: rgba(240, 180, 75, 0.4) transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page v2 — "Matchday" system
+   Navy (matches the Navbar's own #070d18) + championship gold. Clean rounded
+   cards, soft layered shadows, real photography with a simple warm night
+   grade — no clip-path gimmicks, no grain, nothing that can render oddly.
+   Scoped to the home/* landing components only — nothing here is referenced
+   by Footer/Login/Register.
+   --------------------------------------------------------------------------- */
+
+.lp-heading {
+  font-family: var(--font-feature);
+  letter-spacing: -0.01em;
+}
+
+.lp-num {
+  font-family: var(--font-feature);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.lp-eyebrow::before {
+  content: '';
+  width: 1.5rem;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+/* Photo backdrop grade — a simple warm-night tint, not a duotone filter */
+.lp-photo-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(7, 13, 24, 0.35), rgba(7, 13, 24, 0.15));
+}
+
+.lp-card {
+  position: relative;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)),
+    var(--color-navy-raised);
+  border: 1px solid var(--color-navy-line);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Floating atmosphere — soft blurred light orbs behind hero/section content */
+.lp-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: lp-glow-drift 14s ease-in-out infinite;
+}
+@keyframes lp-glow-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-3%, 4%) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-glow {
+    animation: none;
+  }
+}
+
+/* Faint dot-grid texture laid under every landing section for premium depth
+   without a filter or image — a single fixed-position background so it
+   reads as one continuous texture behind the whole page, not per-section. */
+.lp-dot-grid {
+  background-image: radial-gradient(rgba(245, 245, 249, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Big faint numeral used as an editorial section marker */
+.lp-section-mark {
+  font-family: var(--font-feature);
+  font-weight: 800;
+  color: var(--color-cloud);
+  opacity: 0.04;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.lp-perspective {
+  perspective: 1200px;
+}
+
+/* Hover lift — works on touch via :active too, independent of the JS tilt */
+.lp-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.lp-lift:hover,
+.lp-lift:focus-visible {
+  transform: translateY(-6px);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.07) inset, 0 32px 56px -24px rgba(0, 0, 0, 0.7);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-lift:hover,
+  .lp-lift:focus-visible {
+    transform: none;
+  }
+}
+
+/* Metallic gold headline accent */
+.lp-gold-text {
+  background: linear-gradient(100deg, var(--color-mpl-gold-light) 0%, var(--color-mpl-gold) 45%, var(--color-mpl-gold-deep) 70%, var(--color-mpl-gold-light) 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: lp-shimmer 7s linear infinite;
+}
+@keyframes lp-shimmer {
+  to { background-position: -220% center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-gold-text {
+    animation: none;
+  }
+}
+
+/* Fades the marquee edges into the section background instead of a hard cut */
+.lp-edge-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+/* Soft drifting light motes behind the hero — pure CSS, no JS cost */
+.lp-mote {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--color-mpl-gold-light);
+  opacity: 0;
+  animation: lp-drift 9s ease-in-out infinite;
+}
+@keyframes lp-drift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  15% { opacity: 0.55; }
+  50% { transform: translateY(-38px) translateX(10px); opacity: 0.85; }
+  85% { opacity: 0.3; }
+  100% { transform: translateY(-78px) translateX(-6px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-mote {
+    display: none;
+  }
 }
 

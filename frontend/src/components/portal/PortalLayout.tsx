@@ -17,6 +17,7 @@ import {
   Radio,
   X,
   Gift,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PortalSubTabs } from './PortalSubTabs';
@@ -360,6 +361,38 @@ export const PortalLayout: React.FC = () => {
               </NavLink>
             </div>
           </div>
+
+          {/* SECTION 4: ADMINISTRATION — admin accounts only */}
+          {isAdmin && (
+            <div className="pt-2 space-y-1.5">
+              <p className="flex items-center gap-2 px-1 pb-1 text-[10px] font-black uppercase tracking-wider text-[#174478] dark:text-sky-400">
+                <span className="h-1 w-3 rounded-full bg-[#174478] dark:bg-sky-400" />
+                ADMINISTRATION
+              </p>
+
+              <div className="space-y-1.5">
+                <NavLink
+                  to="/portal/admin/users"
+                  onClick={handleNavClick}
+                  className={({ isActive }) => getNavClass(isActive)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={getIconBoxClass(isActive)}>
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold leading-tight">User Management</p>
+                        <p className={`truncate text-[10px] font-medium ${isActive ? 'text-white/80' : 'text-slate-400 dark:text-slate-400'}`}>
+                          Accounts & Payment Verification
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </NavLink>
+              </div>
+            </div>
+          )}
 
           {/* Quick Exit to Main Website */}
           <div className="pt-4 mt-2 border-t border-[#e2e8f0] dark:border-slate-800">

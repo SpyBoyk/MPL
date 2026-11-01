@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Upload, CheckCircle2 } from 'lucide-react';
 import { apiClient } from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 const ink = 'text-slate-900 dark:text-chalk';
 const inkSoft = 'text-slate-600 dark:text-chalk/50';
@@ -62,6 +63,7 @@ export const RegisterPage: React.FC = () => {
     full_name: '',
     username: '',
     email: '',
+    phone_number: '',
     password: '',
     password_confirm: '',
     playing_role: 'all_rounder',
@@ -70,11 +72,25 @@ export const RegisterPage: React.FC = () => {
     jersey_number: '',
   });
 
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(photo);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -82,34 +98,54 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (formData.password !== formData.password_confirm) {
-      setError('Passwords do not match. Please re-enter.');
+      showToast('Passwords do not match. Please re-enter.', 'error');
+      return;
+    }
+
+    if (!photo) {
+      showToast('Please choose a profile photo.', 'error');
+      return;
+    }
+
+    if (!paymentScreenshot) {
+      showToast('Please upload a screenshot of your payment.', 'error');
       return;
     }
 
     setLoading(true);
 
     try {
-      await apiClient.post('/auth/register/', {
-        ...formData,
-        jersey_number: formData.jersey_number ? parseInt(formData.jersey_number) : null,
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'jersey_number') {
+          if (value) payload.append(key, value);
+        } else {
+          payload.append(key, value);
+        }
+      });
+      payload.append('photo', photo);
+      payload.append('payment_screenshot', paymentScreenshot);
+
+      await apiClient.post('/auth/register/', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       setSuccess(true);
+      showToast('Registration successful. Redirecting to sign in…', 'success');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
       const respData = err.response?.data;
+      let message = 'Registration failed. Please check your details and try again.';
       if (respData) {
         const firstKey = Object.keys(respData)[0];
         const val = respData[firstKey];
-        setError(Array.isArray(val) ? `${firstKey}: ${val[0]}` : String(val));
-      } else {
-        setError('Registration failed. Please check your details and try again.');
+        message = Array.isArray(val) ? `${firstKey}: ${val[0]}` : String(val);
       }
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -130,21 +166,38 @@ export const RegisterPage: React.FC = () => {
             Your details go into the official tournament roster for the coming season.
           </p>
 
-          {error && (
-            <div className="mt-8 flex items-start gap-3 px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="mt-8 flex items-start gap-3 px-4 py-3 border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-300 text-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>Registration successful. Redirecting to sign in…</span>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div>
+              <label className={labelCls}>Profile photo</label>
+              <label
+                htmlFor="reg-photo"
+                className={`flex items-center gap-4 border ${ruleBorder} px-4 py-3 cursor-pointer hover:border-sodium-deep dark:hover:border-sodium transition-colors`}
+              >
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Selected profile"
+                    className="w-12 h-12 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <span className="w-12 h-12 rounded-full border border-dashed border-slate-400/60 dark:border-chalk/25 flex items-center justify-center shrink-0 text-slate-400 dark:text-chalk/40">
+                    <Upload className="w-4 h-4" />
+                  </span>
+                )}
+                <span className={`text-sm font-medium ${inkSoft}`}>
+                  {photo ? photo.name : 'Choose a photo to put on your profile'}
+                </span>
+              </label>
+              <input
+                id="reg-photo"
+                type="file"
+                accept="image/*"
+                required
+                className="hidden"
+                onChange={(e) => setPhoto(e.target.files?.[0] || null)}
+              />
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label htmlFor="reg-name" className={labelCls}>
@@ -178,21 +231,39 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="reg-email" className={labelCls}>
-                Email address
-              </label>
-              <input
-                id="reg-email"
-                type="email"
-                name="email"
-                required
-                autoComplete="email"
-                placeholder="rahul@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                className={inputCls}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="reg-email" className={labelCls}>
+                  Email address
+                </label>
+                <input
+                  id="reg-email"
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  placeholder="rahul@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label htmlFor="reg-phone" className={labelCls}>
+                  Phone number
+                </label>
+                <input
+                  id="reg-phone"
+                  type="tel"
+                  name="phone_number"
+                  required
+                  autoComplete="tel"
+                  placeholder="98230 00000"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  className={inputCls}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -289,6 +360,39 @@ export const RegisterPage: React.FC = () => {
               </div>
               <p className={`mt-3 text-[11px] text-slate-400 dark:text-chalk/35`}>
                 You can update these from your profile dashboard once on record.
+              </p>
+            </fieldset>
+
+            {/* Payment proof, as its own ruled sub-ledger — required to register */}
+            <fieldset className={`border ${ruleBorder} px-4 sm:px-5 pt-4 pb-5`}>
+              <legend className={`text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-chalk/40 px-1.5`}>
+                Registration payment
+              </legend>
+
+              <label className={labelCls}>Payment screenshot</label>
+              <label
+                htmlFor="reg-payment-screenshot"
+                className={`flex items-center gap-3 border ${ruleBorder} px-4 py-3 cursor-pointer hover:border-sodium-deep dark:hover:border-sodium transition-colors`}
+              >
+                {paymentScreenshot ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                ) : (
+                  <Upload className="w-5 h-5 text-slate-400 dark:text-chalk/40 shrink-0" />
+                )}
+                <span className={`text-sm font-medium ${inkSoft}`}>
+                  {paymentScreenshot ? paymentScreenshot.name : 'Upload a screenshot of your payment'}
+                </span>
+              </label>
+              <input
+                id="reg-payment-screenshot"
+                type="file"
+                accept="image/*"
+                required
+                className="hidden"
+                onChange={(e) => setPaymentScreenshot(e.target.files?.[0] || null)}
+              />
+              <p className={`mt-3 text-[11px] text-slate-400 dark:text-chalk/35`}>
+                An admin verifies every payment manually before it's marked complete on your profile.
               </p>
             </fieldset>
 
