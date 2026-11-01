@@ -1,9 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Flame, Zap } from 'lucide-react';
-import { apiClient } from '../../api/client';
 import { getPlayerPhoto } from '../../utils/playerPhotos';
 import { ScrollReveal } from '../ui/ScrollReveal';
 import { TiltCard } from './TiltCard';
@@ -15,6 +13,10 @@ interface LeaderEntry {
   runs?: number;
   wickets?: number;
 }
+
+// Season leaders pinned for the landing page.
+const ORANGE_CAP_LEADER: LeaderEntry = { id: 901, full_name: 'Pritesh Mahadik', runs: 400 };
+const PURPLE_CAP_LEADER: LeaderEntry = { id: 26, full_name: 'Akash Jadhav', wickets: 10 };
 
 function Leader({ kind, entry }: { kind: 'orange' | 'purple'; entry?: LeaderEntry }) {
   const isOrange = kind === 'orange';
@@ -59,21 +61,8 @@ function Leader({ kind, entry }: { kind: 'orange' | 'purple'; entry?: LeaderEntr
 }
 
 export const OrangePurpleCapSection: React.FC = () => {
-  const { data } = useQuery({
-    queryKey: ['home-orange-purple-cap'],
-    queryFn: async () => {
-      try {
-        const res = await apiClient.get('/statistics/', { params: { top: true } });
-        return res.data as { top_batters?: LeaderEntry[]; top_bowlers?: LeaderEntry[] };
-      } catch {
-        return null;
-      }
-    },
-    staleTime: 60_000,
-  });
-
-  const topBatter = data?.top_batters?.[0];
-  const topBowler = data?.top_bowlers?.[0];
+  const topBatter = ORANGE_CAP_LEADER;
+  const topBowler = PURPLE_CAP_LEADER;
 
   return (
     <section className="lp-dot-grid relative py-14 sm:py-20 bg-navy overflow-hidden">

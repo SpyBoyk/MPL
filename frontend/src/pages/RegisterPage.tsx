@@ -10,12 +10,14 @@ const ruleBorder = 'border-slate-300/80 dark:border-chalk/15';
 const panelBg = 'bg-[#f7f4ed] dark:bg-[#080f1a]';
 const asideBg = 'bg-[#efeadd] dark:bg-[#060b13]';
 
+// text-base (16px), not text-sm — a smaller focused input font makes iOS
+// Safari auto-zoom the whole page in, which feels broken on mobile.
 const inputCls =
-  'w-full px-4 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk placeholder-slate-400/80 dark:placeholder-chalk/25 text-sm font-medium focus:outline-none focus:border-sodium-deep dark:focus:border-sodium focus:bg-slate-900/[0.03] dark:focus:bg-chalk/[0.03] transition-colors';
+  'w-full px-4 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk placeholder-slate-400/80 dark:placeholder-chalk/25 text-base font-medium focus:outline-none focus:border-sodium-deep dark:focus:border-sodium focus:bg-slate-900/[0.03] dark:focus:bg-chalk/[0.03] transition-colors';
 const labelCls =
   'block text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-chalk/50 mb-2';
 const selectCls =
-  'w-full px-3 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk text-sm focus:outline-none focus:border-sodium-deep dark:focus:border-sodium transition-colors appearance-none truncate';
+  'w-full px-3 py-3 bg-transparent border border-slate-400/60 dark:border-chalk/20 text-slate-900 dark:text-chalk text-base focus:outline-none focus:border-sodium-deep dark:focus:border-sodium transition-colors appearance-none truncate';
 
 function IdentityAside() {
   return (
@@ -98,6 +100,10 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Dismiss the on-screen keyboard first — a toast fixed to the bottom of
+    // the screen can otherwise end up hidden behind it on mobile right when
+    // it matters most (immediately after tapping submit).
+    (document.activeElement as HTMLElement | null)?.blur();
 
     if (formData.password !== formData.password_confirm) {
       showToast('Passwords do not match. Please re-enter.', 'error');

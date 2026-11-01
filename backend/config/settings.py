@@ -19,6 +19,21 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.
 if DEBUG:
     ALLOWED_HOSTS += ['*', 'testserver']
 
+# Render (and most PaaS hosts) terminate HTTPS at a proxy and forward plain
+# HTTP internally, so Django needs to trust the proxy's header to know the
+# original request was secure — otherwise SECURE_SSL_REDIRECT loops forever.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# Media uploads (player photos, payment screenshots) need storage that
+# survives a redeploy. Set CLOUDINARY_URL in production to route uploads to
+# Cloudinary instead of local disk — most hosts (including Render's free/
+# starter web services) wipe the local filesystem on every deploy/restart.
+USE_CLOUDINARY = bool(os.getenv('CLOUDINARY_URL'))
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,6 +53,9 @@ INSTALLED_APPS = [
     'apps.matches',
     'apps.statistics',
 ]
+
+if USE_CLOUDINARY:
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -107,14 +125,19 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': (
+            'cloudinary_storage.storage.MediaCloudinaryStorage'
+            if USE_CLOUDINARY
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
 
-# Media files
+# Media files (only used for the FileSystemStorage fallback above — ignored
+# once USE_CLOUDINARY is on, since Cloudinary serves its own URLs)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
