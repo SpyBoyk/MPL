@@ -35,12 +35,13 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 # Media uploads (player photos, payment screenshots) need storage that
-# survives a redeploy. Set CLOUDINARY_URL in production to route uploads to
-# Cloudinary instead of local disk. This is MANDATORY on Vercel — its
-# serverless functions have no persistent/shared filesystem at all, so an
-# uploaded file would vanish as soon as that function instance is recycled
+# survives a redeploy. Set BLOB_READ_WRITE_TOKEN (added automatically once
+# a Vercel Blob store is connected to this project) to route uploads there
+# instead of local disk. This is MANDATORY on Vercel — its serverless
+# functions have no persistent/shared filesystem at all, so an uploaded
+# file would vanish as soon as that function instance is recycled
 # (potentially on the very next request).
-USE_CLOUDINARY = bool(os.getenv('CLOUDINARY_URL'))
+USE_VERCEL_BLOB = bool(os.getenv('BLOB_READ_WRITE_TOKEN'))
 
 # Application definition
 INSTALLED_APPS = [
@@ -61,9 +62,6 @@ INSTALLED_APPS = [
     'apps.matches',
     'apps.statistics',
 ]
-
-if USE_CLOUDINARY:
-    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -137,8 +135,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
     'default': {
         'BACKEND': (
-            'cloudinary_storage.storage.MediaCloudinaryStorage'
-            if USE_CLOUDINARY
+            'apps.accounts.storage.VercelBlobStorage'
+            if USE_VERCEL_BLOB
             else 'django.core.files.storage.FileSystemStorage'
         ),
     },
@@ -148,7 +146,7 @@ STORAGES = {
 }
 
 # Media files (only used for the FileSystemStorage fallback above — ignored
-# once USE_CLOUDINARY is on, since Cloudinary serves its own URLs)
+# once USE_VERCEL_BLOB is on, since Vercel Blob serves its own URLs)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
