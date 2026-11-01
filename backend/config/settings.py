@@ -19,6 +19,12 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.
 if DEBUG:
     ALLOWED_HOSTS += ['*', 'testserver']
 
+# Vercel sets this to the unique hostname of every deployment (production
+# and each preview) — trust it automatically so previews aren't blocked.
+VERCEL_URL = os.getenv('VERCEL_URL')
+if VERCEL_URL:
+    ALLOWED_HOSTS.append(VERCEL_URL)
+
 # Render (and most PaaS hosts) terminate HTTPS at a proxy and forward plain
 # HTTP internally, so Django needs to trust the proxy's header to know the
 # original request was secure — otherwise SECURE_SSL_REDIRECT loops forever.
@@ -30,8 +36,10 @@ if not DEBUG:
 
 # Media uploads (player photos, payment screenshots) need storage that
 # survives a redeploy. Set CLOUDINARY_URL in production to route uploads to
-# Cloudinary instead of local disk — most hosts (including Render's free/
-# starter web services) wipe the local filesystem on every deploy/restart.
+# Cloudinary instead of local disk. This is MANDATORY on Vercel — its
+# serverless functions have no persistent/shared filesystem at all, so an
+# uploaded file would vanish as soon as that function instance is recycled
+# (potentially on the very next request).
 USE_CLOUDINARY = bool(os.getenv('CLOUDINARY_URL'))
 
 # Application definition
@@ -89,8 +97,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - use DATABASE_URL if set, otherwise SQLite for development
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Database - use DATABASE_URL if set, otherwise SQLite for development.
+# Vercel's Postgres (Neon-backed) storage integration names this variable
+# POSTGRES_URL (and POSTGRES_URL_NON_POOLING for a non-pooled connection)
+# instead of DATABASE_URL, so fall back through those too.
+DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL') or os.getenv('POSTGRES_URL_NON_POOLING')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL)
